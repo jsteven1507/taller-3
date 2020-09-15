@@ -61,13 +61,13 @@ if __name__ == '__main__':
     ###gauss noise###
     ECM_gauss_1 = ((image_gray - image_gauss_1) ** 2).mean(axis=None)
     ECM_median_1 = ((image_gray - image_median_1) ** 2).mean(axis=None)
-    ECM_bilateral_1 = ((image_gray - image_median_1) ** 2).mean(axis=None)
-    ECM_nlm_1 = ((image_gray - image_median_1) ** 2).mean(axis=None)
+    ECM_bilateral_1 = ((image_gray - image_bilateral_1) ** 2).mean(axis=None)
+    ECM_nlm_1 = ((image_gray - image_nlm_1) ** 2).mean(axis=None)
     ###syp noise###
     ECM_gauss_2 = ((image_gray - image_gauss_2) ** 2).mean(axis=None)
     ECM_median_2 = ((image_gray - image_median_2) ** 2).mean(axis=None)
-    ECM_bilateral_2 = ((image_gray - image_median_2) ** 2).mean(axis=None)
-    ECM_nlm_2 = ((image_gray - image_median_2) ** 2).mean(axis=None)
+    ECM_bilateral_2 = ((image_gray - image_bilateral_2) ** 2).mean(axis=None)
+    ECM_nlm_2 = ((image_gray - image_nlm_2) ** 2).mean(axis=None)
 
     # Tiempos de ejecucion de los filtros en microsegundos
     ta = t2 - t1
@@ -76,7 +76,7 @@ if __name__ == '__main__':
     td = t8 - t7
 
     rapido = min(ta, tb, tc, td)  # se encuentra el tiempo minimo
-    
+
     # se encuentran los tiempos en milisegundos
     time_gauss = ta * 1000
     time_median = tb * 1000
@@ -106,10 +106,10 @@ if __name__ == '__main__':
         print("% Tiempo filtro bilateral:", (time_bilateral / time_nlm) * 100)
 
     #se imprime los ECM
-    print("ECM filtro gauss    :", ECM_gauss_2)
-    print("ECM filtro median   :", ECM_median_2)
-    print("ECM filtro bilateral:", ECM_bilateral_2)
-    print("ECM filtro nlm      :", ECM_nlm_2)
+    print("ECM filtro gauss    :", ECM_gauss_1)
+    print("ECM filtro median   :", ECM_median_1)
+    print("ECM filtro bilateral:", ECM_bilateral_1)
+    print("ECM filtro nlm      :", ECM_nlm_1)
 
     #se muestra la imagen seleccionada
     cv2.imshow("Filtered image", noise_bilateral_2 )
