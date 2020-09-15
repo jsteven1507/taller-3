@@ -1,0 +1,103 @@
+import cv2
+import numpy as np
+from noise import noise
+import os
+import time
+if __name__ == '__main__':
+    path = "C:/Users/Steven/Documents/8 semestre/Procesamiento de imagenes"
+    image_name = 'lena.png'
+    path_file = os.path.join(path, image_name)
+    image = cv2.imread(path_file)
+    image_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+    ############################add noise#######################
+    # add gauss noise
+    lena_gauss_noisy = noise("gauss", image_gray.astype(np.float) / 255)
+    lena_gauss_noisy = (255 * lena_gauss_noisy).astype(np.uint8)
+
+    # add s&p noise
+    lena_syp_noisy = noise("s&p", image_gray.astype(np.float) / 255)
+    lena_syp_noisy = (255 * lena_syp_noisy).astype(np.uint8)
+
+    #############################filters############################
+    # gaussian low-pass
+    t1 = time.time()
+    image_gauss_1 = cv2.GaussianBlur(lena_gauss_noisy, (7, 7), 1.5, 1.5)
+    t2 = time.time()
+    image_gauss_2 = cv2.GaussianBlur(lena_syp_noisy, (7, 7), 1.5, 1.5)
+
+    # median
+    t3 = time.time()
+    image_median_1 = cv2.medianBlur(lena_gauss_noisy, 7)
+    t4 = time.time()
+    image_median_2 = cv2.medianBlur(lena_syp_noisy, 7)
+
+    # bilateral
+    t5 = time.time()
+    image_bilateral_1 = cv2.bilateralFilter(lena_gauss_noisy, 15, 25, 25)
+    t6 = time.time()
+    image_bilateral_2 = cv2.bilateralFilter(lena_syp_noisy, 15, 25, 25)
+
+    # nlm
+    t7 = time.time()
+    image_nlm_1 = cv2.fastNlMeansDenoising(lena_gauss_noisy, 5, 15, 25)
+    t8 = time.time()
+    image_nlm_2 = cv2.fastNlMeansDenoising(lena_syp_noisy, 5, 15, 25)
+
+    ######################noise#######################################
+    noise_gauss_1 = abs(cv2.subtract(lena_gauss_noisy, image_gauss_1))
+    noise_median_1 = abs(cv2.subtract(lena_gauss_noisy, image_median_1))
+    noise_bilateral_1 = abs(cv2.subtract(lena_gauss_noisy, image_bilateral_1))
+    noise_nlm_1 = abs(cv2.subtract(lena_gauss_noisy, image_nlm_1))
+
+    noise_gauss_2 = abs(cv2.subtract(lena_syp_noisy, image_gauss_2))
+    noise_median_2 = abs(cv2.subtract(lena_syp_noisy, image_median_2))
+    noise_bilateral_2 = abs(cv2.subtract(lena_syp_noisy, image_bilateral_2))
+    noise_nlm_2 = abs(cv2.subtract(lena_syp_noisy, image_nlm_2))
+
+    ######################ECM############################################
+    ###gauss noise###
+    ECM_gauss_1 = ((image_gray - image_gauss_1) ** 2).mean(axis=None)
+    ECM_median_1 = ((image_gray - image_median_1) ** 2).mean(axis=None)
+    ECM_bilateral_1 = ((image_gray - image_median_1) ** 2).mean(axis=None)
+    ECM_nlm_1 = ((image_gray - image_median_1) ** 2).mean(axis=None)
+    ###syp noise###
+    ECM_gauss_2 = ((image_gray - image_gauss_2) ** 2).mean(axis=None)
+    ECM_median_2 = ((image_gray - image_median_2) ** 2).mean(axis=None)
+    ECM_bilateral_2 = ((image_gray - image_median_2) ** 2).mean(axis=None)
+    ECM_nlm_2 = ((image_gray - image_median_2) ** 2).mean(axis=None)
+
+    # Tiempos de ejecucion de los filtros
+    ta = t2 - t1
+    tb = t4 - t3
+    tc = t6 - t5
+    td = t8 - t7
+
+    rapido = min(ta, tb, tc, td)
+    time_gauss = ta * 1000
+    time_median = tb * 1000
+    time_bilateral = tc * 1000
+    time_nlm = td * 1000
+
+    if rapido == ta:
+        print("  Tiempo filtro gauss    :", time_gauss)
+        print("% Tiempo filtro median   :", (time_median / time_gauss) * 100)
+        print("% Tiempo filtro bilateral:", (time_bilateral / time_gauss) * 100)
+        print("% Tiempo filtro nlm      :", (time_nlm / time_gauss) * 100)
+    elif rapido == tb:
+        print("  Tiempo filtro median   :", time_median)
+        print("% Tiempo filtro gauss    :", (time_gauss / time_median) * 100)
+        print("% Tiempo filtro bilateral:", (time_bilateral / time_median) * 100)
+        print("% Tiempo filtro nlm      :", (time_nlm / time_median) * 100)
+    elif rapido == tc:
+        print("  Tiempo filtro bilateral:", time_bilateral)
+        print("% Tiempo filtro gauss    :", (time_gauss / time_bilateral) * 100)
+        print("% Tiempo filtro median   :", (time_median / time_bilateral) * 100)
+        print("% Tiempo filtro nlm      :", (time_nlm / time_bilateral) * 100)
+    elif rapido == td:
+        print("  Tiempo filtro nlm      :", time_nlm)
+        print("% Tiempo filtro gauss    :", (time_gauss / time_nlm) * 100)
+        print("% Tiempo filtro median   :", (time_median / time_nlm) * 100)
+        print("% Tiempo filtro bilateral:", (time_bilateral / time_nlm) * 100)
+
+    cv2.imshow("Filtered image", noise_bilateral_2 )
