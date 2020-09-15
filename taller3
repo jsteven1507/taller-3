@@ -1,5 +1,6 @@
-import cv2
-import numpy as np
+import numpy as np #librería en la que se define un tipo de dato que representa matrices multidimensionales
+# además incluye algunas funcionalidades básicas para trabajar con ellas
+import cv2 #OpenCV es una biblioteca libre de visión artificial originalmente desarrollada por Intel
 from noise import noise
 import os
 import time
@@ -8,7 +9,7 @@ if __name__ == '__main__':
     image_name = 'lena.png'
     path_file = os.path.join(path, image_name)
     image = cv2.imread(path_file)
-    image_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    image_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)  #imagen en esacala de grises
 
     ############################add noise#######################
     # add gauss noise
@@ -21,30 +22,31 @@ if __name__ == '__main__':
 
     #############################filters############################
     # gaussian low-pass
-    t1 = time.time()
+    t1 = time.time() #tiempo inicio
     image_gauss_1 = cv2.GaussianBlur(lena_gauss_noisy, (7, 7), 1.5, 1.5)
-    t2 = time.time()
+    t2 = time.time() #tiempo fin
     image_gauss_2 = cv2.GaussianBlur(lena_syp_noisy, (7, 7), 1.5, 1.5)
 
     # median
-    t3 = time.time()
+    t3 = time.time()#tiempo inicio
     image_median_1 = cv2.medianBlur(lena_gauss_noisy, 7)
-    t4 = time.time()
+    t4 = time.time()#tiempo fin
     image_median_2 = cv2.medianBlur(lena_syp_noisy, 7)
 
     # bilateral
-    t5 = time.time()
+    t5 = time.time()#tiempo inicio
     image_bilateral_1 = cv2.bilateralFilter(lena_gauss_noisy, 15, 25, 25)
-    t6 = time.time()
+    t6 = time.time()#tiempo fin
     image_bilateral_2 = cv2.bilateralFilter(lena_syp_noisy, 15, 25, 25)
 
     # nlm
-    t7 = time.time()
+    t7 = time.time()#tiempo inicio
     image_nlm_1 = cv2.fastNlMeansDenoising(lena_gauss_noisy, 5, 15, 25)
-    t8 = time.time()
+    t8 = time.time()#tiempo fin
     image_nlm_2 = cv2.fastNlMeansDenoising(lena_syp_noisy, 5, 15, 25)
 
     ######################noise#######################################
+    #ruido estimado
     noise_gauss_1 = abs(cv2.subtract(lena_gauss_noisy, image_gauss_1))
     noise_median_1 = abs(cv2.subtract(lena_gauss_noisy, image_median_1))
     noise_bilateral_1 = abs(cv2.subtract(lena_gauss_noisy, image_bilateral_1))
@@ -67,18 +69,21 @@ if __name__ == '__main__':
     ECM_bilateral_2 = ((image_gray - image_median_2) ** 2).mean(axis=None)
     ECM_nlm_2 = ((image_gray - image_median_2) ** 2).mean(axis=None)
 
-    # Tiempos de ejecucion de los filtros
+    # Tiempos de ejecucion de los filtros en microsegundos
     ta = t2 - t1
     tb = t4 - t3
     tc = t6 - t5
     td = t8 - t7
 
-    rapido = min(ta, tb, tc, td)
+    rapido = min(ta, tb, tc, td)  # se encuentra el tiempo minimo
+    
+    # se encuentran los tiempos en milisegundos
     time_gauss = ta * 1000
     time_median = tb * 1000
     time_bilateral = tc * 1000
     time_nlm = td * 1000
 
+    #dependiendo de cual filtro es el mas rapido se imprime los demas en porcentaje de el
     if rapido == ta:
         print("  Tiempo filtro gauss    :", time_gauss)
         print("% Tiempo filtro median   :", (time_median / time_gauss) * 100)
@@ -100,4 +105,12 @@ if __name__ == '__main__':
         print("% Tiempo filtro median   :", (time_median / time_nlm) * 100)
         print("% Tiempo filtro bilateral:", (time_bilateral / time_nlm) * 100)
 
+    #se imprime los ECM
+    print("ECM filtro gauss    :", ECM_gauss_2)
+    print("ECM filtro median   :", ECM_median_2)
+    print("ECM filtro bilateral:", ECM_bilateral_2)
+    print("ECM filtro nlm      :", ECM_nlm_2)
+
+    #se muestra la imagen seleccionada
     cv2.imshow("Filtered image", noise_bilateral_2 )
+    cv2.waitKey(0)
